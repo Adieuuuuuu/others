@@ -21,6 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Restore generated Java sources
+        run: |
+          mkdir -p app/src/main/java/com/adie/queuemonitor
+          base64 --decode generated/MainActivity.java.gz.b64 | gzip --decompress > app/src/main/java/com/adie/queuemonitor/MainActivity.java
+          base64 --decode generated/MonitorService.java.gz.b64 | gzip --decompress > app/src/main/java/com/adie/queuemonitor/MonitorService.java
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
