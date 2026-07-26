@@ -23,9 +23,27 @@ jobs:
 
       - name: Restore generated Java sources
         run: |
+          set -euo pipefail
           mkdir -p app/src/main/java/com/adie/queuemonitor
-          base64 --decode generated/MainActivity.java.gz.b64 | gzip --decompress > app/src/main/java/com/adie/queuemonitor/MainActivity.java
-          base64 --decode generated/MonitorService.java.gz.b64 | gzip --decompress > app/src/main/java/com/adie/queuemonitor/MonitorService.java
+
+          cat generated/v11/MainActivity.java.gz.b64.part00 \
+              generated/v11/MainActivity.java.gz.b64.part01 \
+              generated/v11/MainActivity.java.gz.b64.part02 \
+              generated/v11/MainActivity.java.gz.b64.part03 \
+              > /tmp/MainActivity.java.gz.b64
+          base64 --decode /tmp/MainActivity.java.gz.b64 > /tmp/MainActivity.java.gz
+          gzip --test /tmp/MainActivity.java.gz
+          gzip --decompress --stdout /tmp/MainActivity.java.gz \
+              > app/src/main/java/com/adie/queuemonitor/MainActivity.java
+
+          base64 --decode generated/v11/MonitorService.java.gz.b64.part00 \
+              > /tmp/MonitorService.java.gz
+          gzip --test /tmp/MonitorService.java.gz
+          gzip --decompress --stdout /tmp/MonitorService.java.gz \
+              > app/src/main/java/com/adie/queuemonitor/MonitorService.java
+
+          test -s app/src/main/java/com/adie/queuemonitor/MainActivity.java
+          test -s app/src/main/java/com/adie/queuemonitor/MonitorService.java
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
