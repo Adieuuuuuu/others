@@ -1,0 +1,47 @@
+name: Fetch official Stanford captions 2083914732902195598
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  captions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download official captions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --disable-pip-version-check yt-dlp
+          URL='https://www.youtube.com/watch?v=F_7M4Hc-usM'
+          yt-dlp --list-subs "$URL" > available_subtitles.txt 2>&1 || true
+          yt-dlp \
+            --skip-download \
+            --write-auto-subs \
+            --write-subs \
+            --sub-langs 'en,en-orig,zh-Hans,zh-CN,zh' \
+            --sub-format 'vtt' \
+            --no-overwrites \
+            -o 'official.%(ext)s' \
+            "$URL" > download_log.txt 2>&1 || true
+          find . -maxdepth 1 -type f -printf '%f\n' | sort > files.txt
+          cat available_subtitles.txt
+          cat download_log.txt
+          test -n "$(find . -maxdepth 1 -type f -name 'official*.vtt' -print -quit)"
+      - name: Upload caption package
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-stanford-captions-2083914732902195598
+          path: |
+            official*.vtt
+            available_subtitles.txt
+            download_log.txt
+            files.txt
+          if-no-files-found: error
+          retention-days: 1
