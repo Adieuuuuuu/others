@@ -1,0 +1,101 @@
+name: Fetch X video 2083914732902195598
+
+on:
+  push:
+    branches:
+      - subtitle-job-2083914732902195598
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve post and download source video
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import re
+          import requests
+          from pathlib import Path
+
+          post_id = "2083914732902195598"
+          candidates = [
+              f"https://api.fxtwitter.com/status/{post_id}",
+              f"https://api.fxtwitter.com/{post_id}",
+              f"https://api.fxtwitter.com/i/status/{post_id}",
+          ]
+          headers = {"User-Agent": "Adie bilingual subtitle job/1.0"}
+          payload = None
+          attempts = []
+          for url in candidates:
+              try:
+                  response = requests.get(url, headers=headers, timeout=30)
+                  attempts.append({"url": url, "status": response.status_code, "content_type": response.headers.get("content-type")})
+                  if response.ok:
+                      payload = response.json()
+                      Path("resolved_endpoint.txt").write_text(url, encoding="utf-8")
+                      break
+              except Exception as exc:
+                  attempts.append({"url": url, "error": repr(exc)})
+
+          Path("attempts.json").write_text(json.dumps(attempts, ensure_ascii=False, indent=2), encoding="utf-8")
+          if payload is None:
+              raise SystemExit("FxTwitter API did not return usable JSON")
+
+          Path("tweet.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+          found = []
+          def walk(value, key_path="root"):
+              if isinstance(value, dict):
+                  for key, child in value.items():
+                      walk(child, f"{key_path}.{key}")
+              elif isinstance(value, list):
+                  for index, child in enumerate(value):
+                      walk(child, f"{key_path}[{index}]")
+              elif isinstance(value, str):
+                  low = value.lower()
+                  if "video.twimg.com" in low or re.search(r"\.mp4(?:\?|$)", low):
+                      found.append((key_path, value))
+
+          walk(payload)
+          Path("media_urls.json").write_text(json.dumps(found, ensure_ascii=False, indent=2), encoding="utf-8")
+          if found:
+              Path("video_url.txt").write_text(found[0][1], encoding="utf-8")
+          else:
+              Path("video_url.txt").write_text("", encoding="utf-8")
+          PY
+
+          python -m pip install --quiet --disable-pip-version-check yt-dlp
+          VIDEO_URL="$(cat video_url.txt)"
+          if [ -n "$VIDEO_URL" ]; then
+            yt-dlp --no-playlist --merge-output-format mp4 -o 'source.%(ext)s' "$VIDEO_URL"
+          else
+            yt-dlp --no-playlist --merge-output-format mp4 -o 'source.%(ext)s' 'https://x.com/i/status/2083914732902195598'
+          fi
+
+          VIDEO_FILE="$(find . -maxdepth 1 -type f \( -name 'source.mp4' -o -name 'source.webm' -o -name 'source.mkv' -o -name 'source.mov' \) | head -n 1)"
+          test -n "$VIDEO_FILE"
+          ffprobe -v error -show_format -show_streams -of json "$VIDEO_FILE" > video_probe.json
+          sha256sum "$VIDEO_FILE" > source.sha256
+
+      - name: Upload source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: x-video-source-2083914732902195598
+          path: |
+            source.*
+            tweet.json
+            attempts.json
+            resolved_endpoint.txt
+            media_urls.json
+            video_url.txt
+            video_probe.json
+          if-no-files-found: error
+          retention-days: 1
