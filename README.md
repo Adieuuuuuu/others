@@ -1,39 +1,16 @@
-# 图片复刻 PPTX 模板 Skill
+# 图片复刻 PPTX Skill
 
-这是一个 Codex Skill：将参考图片、拼图截图、小红书预览图或图片型 PDF，重建为可编辑的 PPTX 模板。
+这是一个 Codex Skill，完整可安装目录位于 `image-to-pptx-template/`。
 
-## 安装
+## 下载与安装
 
-1. 下载并解压本仓库。
-2. 将 image-to-pptx-template 文件夹复制到 Codex 用户 Skill 目录：
+1. 下载并解压本分支 ZIP。
+2. 将其中的 `image-to-pptx-template` 文件夹复制到 Codex 用户 Skill 目录：
 
-   %USERPROFILE%\.codex\skills\image-to-pptx-template
+   `%USERPROFILE%\.codex\skills\image-to-pptx-template`
 
-3. 重新打开 Codex 会话，然后直接说“使用图片复刻 PPTX 模板 skill”。
+3. 重新打开 Codex 会话，然后说“使用图片复刻 PPTX 模板 skill”。
 
-也可以把该文件夹放进你自己的项目 Skill 目录；具体发现路径取决于所用 Codex 版本和项目配置。
+Skill 的环境依赖、能力边界和使用提示见 `image-to-pptx-template/README.md`。
 
-## 适用范围
-
-- 根据图片或图片型 PDF 重建新的、可编辑的 PPTX。
-- 一页、多页或多页拼图均可；会按实际展示的内容识别页序。
-- 已有可编辑 PPTX 的常规改稿应直接编辑原文件，不需要从头复刻。
-
-## 环境与能力
-
-部分流程需要可用的 Python 环境及 Pillow、pypdf、pypdfium2、lxml；还需要当前运行环境提供 PPTX 创建、图片生成和逐页渲染能力。小红书预览下载依赖页面可访问；本地 PowerPoint 引擎只在环境可用时用于更贴近真实软件的验证。能力缺失时，Skill 要求说明实际验证边界。
-
-## 目录内容
-
-- SKILL.md：主要工作流程与约束。
-- references/：素材操作、配图重绘、小红书预览说明。
-- scripts/：参考图片裁切、PPTX 图片资源检查和替换、小红书预览下载脚本。
-- agents/openai.yaml：Codex 展示名称与默认提示词。
-
-## 使用提示
-
-在请求中说明参考素材、目标页数（如果已知）、是否允许重绘配图，以及是否要保留原图。看不清的文字不会猜；被遮挡的内容不能从截图中恢复。
-
-## 许可
-
-当前未附开源许可证。公开仓库不自动授予复制、修改或再分发的许可；如需公开复用，请先与仓库所有者确认。
+当前未附开源许可证；公开仓库不自动授予复制、修改或再分发许可。
