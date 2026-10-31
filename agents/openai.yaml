@@ -1,0 +1,4 @@
+interface:
+  display_name: "图片复刻 PPTX 模板"
+  short_description: "将参考截图或图片型 PDF 复刻为可编辑 PPTX，并按原图重绘高清配图"
+  default_prompt: "使用 $image-to-pptx-template 在当前项目制作区将参考图片或小红书预览图复刻为可编辑 PPTX，保留原布局并按需重绘高清配图；完成验证后按已有授权及项目规则入库。"
